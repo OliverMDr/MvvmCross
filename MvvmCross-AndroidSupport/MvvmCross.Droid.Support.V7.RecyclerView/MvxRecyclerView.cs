@@ -32,7 +32,8 @@ namespace MvvmCross.Droid.Support.V7.RecyclerView
             if (adapter == null)
                 return;
 
-            SetLayoutManager(new LinearLayoutManager(context));
+            if (base.GetLayoutManager() == null)
+                SetLayoutManager(new LinearLayoutManager(context));
 
             var itemTemplateId = MvxAttributeHelpers.ReadListItemTemplateId(context, attrs);
             var itemTemplateSelector = MvxRecyclerViewAttributeExtensions.BuildItemTemplateSelector(context, attrs);
@@ -47,6 +48,17 @@ namespace MvvmCross.Droid.Support.V7.RecyclerView
         public sealed override void SetLayoutManager(LayoutManager layout)
         {
             base.SetLayoutManager(layout);
+        }
+
+        protected override void OnDetachedFromWindow()
+        {
+            base.OnDetachedFromWindow();
+
+            // Remove all the views that are currently in play.
+            // This clears out all of the ViewHolder DataContexts by detaching the ViewHolder.
+            // Eventually the GC will come along and clear out the binding contexts.
+            // Issue #1405
+            this.GetLayoutManager()?.RemoveAllViews();
         }
 
         public new IMvxRecyclerAdapter Adapter
